@@ -72,7 +72,7 @@ else:
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import japanize_matplotlib
+import matplotlib_fontja
 
 # 取得したデータをもとにグラフを表示
 if not selected_rows.empty:
