@@ -47,7 +47,7 @@ search_response = AgGrid(
     update_mode=GridUpdateMode.MODEL_CHANGED,  # モデルが変更されたときに更新
     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,  # フィルタリングとソートの状態を保持
     editable=True,
-    fit_columns_on_grid_load=True,  # 表示範囲をカラム幅に合わせる
+    fit_columns_on_grid_load=False,  # 初期読み込み時の列幅を固定
     height=450
 )
 
@@ -69,7 +69,7 @@ grid_response = AgGrid(
     update_mode=GridUpdateMode.MODEL_CHANGED,  # モデルが変更されたときに更新
     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,  # フィルタリングとソートの状態を保持
     editable=True,
-    fit_columns_on_grid_load=True,  # 表示範囲をカラム幅に合わせる
+    fit_columns_on_grid_load=False,  # 初期読み込み時の列幅を固定
     height=767
 )
 
