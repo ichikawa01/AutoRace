@@ -11,15 +11,18 @@ df_ii = pd.read_csv('iizuka.csv')
 df_san = pd.read_csv('sanyo.csv')
 
 # データフレームをリストにまとめる
-df = pd.concat([df_kawa, df_ise, df_hama, df_ii, df_san])
+df = pd.concat([df_kawa, df_ise, df_hama, df_ii, df_san]).reset_index(drop=True)
+
+# インデックスをリセットし、「選手番号」列として追加
+df = df.reset_index().rename(columns={'index': '選手番号'})
+df['選手番号'] = df['選手番号'] + 1  # 選手番号を1から始める
 
 # チェックボックス列
 df['☑️'] = [False] * len(df)
 df = df[['☑️'] + [col for col in df.columns if col != '☑️']]
 
-"""
-### 選手特徴一覧
-"""
+# タイトル
+st.write("### 選手特徴一覧")
 
 # 検索バーを追加
 search_text = st.text_input('検索', '')
@@ -28,11 +31,7 @@ search_text = st.text_input('検索', '')
 if search_text:
     filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_text, case=False).any(), axis=1)]
 else:
-    filtered_df = df
-
-# 初期化：セッションステートにチェック状態を保存するリストを作成
-if 'selected_states' not in st.session_state:
-    st.session_state['selected_states'] = df['☑️'].tolist()
+    filtered_df = df[0:0]
 
 # テーブルの表示と編集可能にするための設定
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
@@ -41,13 +40,37 @@ gb.configure_default_column(editable=True)  # すべての列を編集可能に�
 gb.configure_grid_options(enableHorizontalScroll=True)
 grid_options = gb.build()
 
-# データグリッドを表示
-grid_response = AgGrid(
+# 検索用のデータグリッドを表示
+search_response = AgGrid(
     filtered_df,
     gridOptions=grid_options,
     update_mode=GridUpdateMode.MODEL_CHANGED,  # モデルが変更されたときに更新
     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,  # フィルタリングとソートの状態を保持
     editable=True,
+    fit_columns_on_grid_load=True,  # 表示範囲をカラム幅に合わせる
+    height=450
+)
+
+# 初期化：セッションステートにチェック状態を保存するリストを作成
+if 'selected_states' not in st.session_state:
+    st.session_state['selected_states'] = df['☑️'].tolist()
+
+# テーブルの表示と編集可能にするための設定
+gb = GridOptionsBuilder.from_dataframe(df)
+gb.configure_pagination(paginationAutoPageSize=True)  # ページネーションを設定
+gb.configure_default_column(editable=True)  # すべての列を編集可能に設定
+gb.configure_grid_options(enableHorizontalScroll=True)
+grid_options = gb.build()
+
+# データグリッドを表示
+grid_response = AgGrid(
+    df,
+    gridOptions=grid_options,
+    update_mode=GridUpdateMode.MODEL_CHANGED,  # モデルが変更されたときに更新
+    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,  # フィルタリングとソートの状態を保持
+    editable=True,
+    fit_columns_on_grid_load=True,  # 表示範囲をカラム幅に合わせる
+    height=767
 )
 
 # 更新されたデータを取得
@@ -63,7 +86,7 @@ selected_rows = selected_rows.drop(columns=['☑️'])
 # チェックされたデータを表示
 if len(selected_rows) > 0:
     st.subheader('選手比較')
-    st.write(selected_rows)
+    st.dataframe(selected_rows, width=1000)  # 横幅を広げるためwidthを指定
 else:
     st.write("選手未選択")
 
@@ -93,7 +116,7 @@ if not selected_rows.empty:
 
         # 特定の名前のデータを取得
         data = selected_rows[selected_rows['名前'] == name].drop(columns='名前').values.flatten()
-        data = data[:-1]  # 必要なデータを選択
+        data = data[1:-1]  # 必要なデータを選択
 
         # クラスのlabel_listと取得したデータを設定
         label_list = ['スタート', '独走力', '追い込み力', '雨巧拙']
